@@ -16,6 +16,10 @@ const METEOR_MAX_DURATION = 1.6;
 const METEOR_TRAIL_SEGMENTS = 24;
 const METEOR_TRAIL_LENGTH_MIN = 8;
 const METEOR_TRAIL_LENGTH_MAX = 12;
+const METEOR_OFFSCREEN_MARGIN_MIN = 2;
+const METEOR_OFFSCREEN_MARGIN_MAX = 4;
+const METEOR_FADE_FRACTION = 0.1;
+const METEOR_TRAIL_FALLOFF = 2.3;
 const CAMERA_Z = 30;
 const CAMERA_FOV = 60;
 
@@ -31,17 +35,22 @@ const DARK_STAR_PALETTE = [
   "#e8ecff",
 ];
 const LIGHT_STAR_PALETTE = [
-  "#7a8494",
-  "#8a93a3",
-  "#c9a86a",
-  "#b89a5e",
-  "#aab3c0",
+  "#52606f",
+  "#5d6b7a",
+  "#8a6d2f",
+  "#7a5f28",
+  "#6b7a8a",
 ];
 
+const DARK_STAR_OPACITY = 1.0;
+const DARK_STAR_SIZE_SCALE = 1.0;
+const LIGHT_STAR_OPACITY = 1.7;
+const LIGHT_STAR_SIZE_SCALE = 1.4;
+
 const DARK_METEOR_HEAD = "#fff3d6";
-const DARK_METEOR_TRAIL = "#ffd9a0";
+const DARK_METEOR_TRAIL = "#c9973d";
 const LIGHT_METEOR_HEAD = "#ffffff";
-const LIGHT_METEOR_TRAIL = "#d9c9a0";
+const LIGHT_METEOR_TRAIL = "#a98a4a";
 
 // ---- Original GLSL ------------------------------------------------------
 const STAR_VERTEX = /* glsl */ `
@@ -51,22 +60,24 @@ const STAR_VERTEX = /* glsl */ `
   attribute vec3 color;
   uniform float uTime;
   uniform float uPixelRatio;
+  uniform float uStarSizeScale;
   varying vec3 vColor;
   void main() {
     vColor = color;
     float twinkle = 0.5 + 0.5 * sin(uTime * aSpeed + aPhase);
-    gl_PointSize = aSize * uPixelRatio * (0.6 + 0.8 * twinkle);
+    gl_PointSize = aSize * uPixelRatio * (0.6 + 0.8 * twinkle) * uStarSizeScale;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
 
 const STAR_FRAGMENT = /* glsl */ `
+  uniform float uStarOpacity;
   varying vec3 vColor;
   void main() {
     vec2 uv = gl_PointCoord - 0.5;
     float d = length(uv);
     float alpha = smoothstep(0.5, 0.0, d);
-    gl_FragColor = vec4(vColor, alpha);
+    gl_FragColor = vec4(vColor, alpha * uStarOpacity);
   }
 `;
 
@@ -188,6 +199,8 @@ export function StarfieldHero() {
         uniforms: {
           uTime: { value: 0 },
           uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+          uStarOpacity: { value: DARK_STAR_OPACITY },
+          uStarSizeScale: { value: DARK_STAR_SIZE_SCALE },
         },
         vertexShader: STAR_VERTEX,
         fragmentShader: STAR_FRAGMENT,
@@ -221,6 +234,12 @@ export function StarfieldHero() {
         currentTheme = isDark ? "dark" : "light";
         bgColor.set(isDark ? DARK_BG : LIGHT_BG);
         fillStarColors(isDark);
+        starMat.uniforms.uStarOpacity.value = isDark
+          ? DARK_STAR_OPACITY
+          : LIGHT_STAR_OPACITY;
+        starMat.uniforms.uStarSizeScale.value = isDark
+          ? DARK_STAR_SIZE_SCALE
+          : LIGHT_STAR_SIZE_SCALE;
         if (!rafId) render();
       }
 
@@ -248,15 +267,47 @@ export function StarfieldHero() {
         const now = performance.now();
         if (now - lastMeteorSpawnAt < METEOR_MIN_GAP_MS) return;
 
-        const start = new THREE.Vector3(rand(-30, 30), rand(5, 15), rand(-5, 5));
-        const dist = CAMERA_Z - start.z;
+        const z = rand(-5, 5);
+        const dist = CAMERA_Z - z;
         const halfH = Math.tan(THREE.MathUtils.degToRad(CAMERA_FOV / 2)) * dist;
         const halfW = halfH * camera.aspect;
-        const end = new THREE.Vector3(
-          start.x + (Math.random() < 0.5 ? -1 : 1) * halfW * rand(0.4, 0.7),
-          start.y - halfH * rand(0.4, 0.7),
-          start.z + rand(-3, 3),
+        const margin = rand(
+          METEOR_OFFSCREEN_MARGIN_MIN,
+          METEOR_OFFSCREEN_MARGIN_MAX,
         );
+
+        // Start and end both OUTSIDE the visible rect (margin 2-4 units) on
+        // opposite edges, so the full path crosses the interior on a diagonal.
+        let start = new THREE.Vector3();
+        let end = new THREE.Vector3();
+        for (let attempt = 0; attempt < 8; attempt++) {
+          const entry = Math.floor(Math.random() * 3); // 0 top, 1 left, 2 right
+          const exit = Math.floor(Math.random() * 3); // 0 bottom, 1 left, 2 right
+          if (entry === exit) continue;
+
+          if (entry === 0) {
+            start.set(rand(-halfW, halfW), halfH + margin, z);
+          } else if (entry === 1) {
+            start.set(-halfW - margin, rand(0, halfH), z);
+          } else {
+            start.set(halfW + margin, rand(0, halfH), z);
+          }
+          if (exit === 0) {
+            end.set(rand(-halfW, halfW), -halfH - margin, z + rand(-2, 2));
+          } else if (exit === 1) {
+            end.set(-halfW - margin, rand(-halfH, 0), z + rand(-2, 2));
+          } else {
+            end.set(halfW + margin, rand(-halfH, 0), z + rand(-2, 2));
+          }
+
+          // Ensure a clear diagonal (both x and y change meaningfully).
+          if (
+            Math.abs(end.x - start.x) > 0.2 * halfW &&
+            Math.abs(end.y - start.y) > 0.2 * halfH
+          ) {
+            break;
+          }
+        }
         const dir = end.clone().sub(start).normalize();
         const duration = rand(METEOR_MIN_DURATION, METEOR_MAX_DURATION);
         const trailLength = rand(METEOR_TRAIL_LENGTH_MIN, METEOR_TRAIL_LENGTH_MAX);
@@ -317,6 +368,13 @@ export function StarfieldHero() {
         const headPos = m.start.clone().lerp(m.end, t);
         m.head.position.copy(headPos);
 
+        // Fade overall opacity in over the first ~10% and out over the last
+        // ~10% of flight so the meteor never pops at the screen edges.
+        const fadeIn = Math.min(t / METEOR_FADE_FRACTION, 1);
+        const fadeOut = Math.min((1 - t) / METEOR_FADE_FRACTION, 1);
+        const fade = Math.min(fadeIn, fadeOut);
+        m.headMat.opacity = fade;
+
         const posAttr = m.lineGeo.attributes.position as THREE.BufferAttribute;
         const alphaAttr = m.lineGeo.attributes.aAlpha as THREE.BufferAttribute;
         for (let i = 0; i <= METEOR_TRAIL_SEGMENTS; i++) {
@@ -325,7 +383,7 @@ export function StarfieldHero() {
             .clone()
             .sub(m.dir.clone().multiplyScalar(f * m.trailLength));
           posAttr.setXYZ(i, p.x, p.y, p.z);
-          alphaAttr.setX(i, Math.pow(1 - f, 1.5));
+          alphaAttr.setX(i, Math.pow(1 - f, METEOR_TRAIL_FALLOFF) * fade);
         }
         posAttr.needsUpdate = true;
         alphaAttr.needsUpdate = true;
