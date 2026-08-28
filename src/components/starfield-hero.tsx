@@ -543,8 +543,14 @@ export function StarfieldHero() {
           Building tools that make developers faster.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Button render={<a href="#projects" />}>View projects</Button>
-          <Button variant="ghost" render={<a href="#contact" />}>
+          <Button nativeButton={false} render={<a href="#projects" />}>
+            View projects
+          </Button>
+          <Button
+            variant="ghost"
+            nativeButton={false}
+            render={<a href="#contact" />}
+          >
             Get in touch
           </Button>
         </div>
