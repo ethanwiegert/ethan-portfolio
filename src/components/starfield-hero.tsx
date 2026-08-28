@@ -44,7 +44,7 @@ const LIGHT_STAR_PALETTE = [
 
 const DARK_STAR_OPACITY = 1.0;
 const DARK_STAR_SIZE_SCALE = 1.0;
-const LIGHT_STAR_OPACITY = 1.7;
+const LIGHT_STAR_OPACITY = 1.15;
 const LIGHT_STAR_SIZE_SCALE = 1.4;
 
 const DARK_METEOR_HEAD = "#fff3d6";
@@ -240,6 +240,11 @@ export function StarfieldHero() {
         starMat.uniforms.uStarSizeScale.value = isDark
           ? DARK_STAR_SIZE_SCALE
           : LIGHT_STAR_SIZE_SCALE;
+        // Additive in dark (glow), normal in light (darker points on pale sky).
+        starMat.blending = isDark
+          ? THREE.AdditiveBlending
+          : THREE.NormalBlending;
+        starMat.needsUpdate = true;
         if (!rafId) render();
       }
 
@@ -331,7 +336,8 @@ export function StarfieldHero() {
           fragmentShader: TRAIL_FRAGMENT,
           transparent: true,
           depthWrite: false,
-          blending: THREE.AdditiveBlending,
+          // Additive in dark (glow), normal in light (warm streak on pale sky).
+          blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
         });
         const line = new THREE.Line(lineGeo, lineMat);
 
