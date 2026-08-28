@@ -19,7 +19,7 @@ const METEOR_TRAIL_LENGTH_MAX = 12;
 const METEOR_OFFSCREEN_MARGIN_MIN = 2;
 const METEOR_OFFSCREEN_MARGIN_MAX = 4;
 const METEOR_FADE_FRACTION = 0.1;
-const METEOR_TRAIL_FALLOFF = 2.3;
+const METEOR_TRAIL_FALLOFF = 1.5;
 const CAMERA_Z = 30;
 const CAMERA_FOV = 60;
 
@@ -48,9 +48,9 @@ const LIGHT_STAR_OPACITY = 1.15;
 const LIGHT_STAR_SIZE_SCALE = 1.4;
 
 const DARK_METEOR_HEAD = "#fff3d6";
-const DARK_METEOR_TRAIL = "#c9973d";
+const DARK_METEOR_TRAIL = "#ffd9a0";
 const LIGHT_METEOR_HEAD = "#ffffff";
-const LIGHT_METEOR_TRAIL = "#a98a4a";
+const LIGHT_METEOR_TRAIL = "#d9c9a0";
 
 // ---- Original GLSL ------------------------------------------------------
 const STAR_VERTEX = /* glsl */ `
@@ -336,8 +336,7 @@ export function StarfieldHero() {
           fragmentShader: TRAIL_FRAGMENT,
           transparent: true,
           depthWrite: false,
-          // Additive in dark (glow), normal in light (warm streak on pale sky).
-          blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
+          blending: THREE.AdditiveBlending,
         });
         const line = new THREE.Line(lineGeo, lineMat);
 
