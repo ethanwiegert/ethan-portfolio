@@ -33,7 +33,7 @@ export default function Home() {
             <b><i>From Microbiologist to Full-stack developer</i></b>
           </p>
           <p className="mt-3 text-muted-foreground">
-            I originally obtained my Bachelors of Science in Microbiology in 2021.  After working as a QC Microbiologist focusing testing for the presence of bacteria and fungi in liquid injectibles, I learned Javascript and fell in love with programming.  Now the only bugs I deal with are in the code.
+            I originally obtained my Bachelors of Science in Microbiology in 2021.  I began my career working as a QC Microbiologist testing for the presence of bacteria and fungi in liquid injectibles in the Pharmaceutical industry.  Years later, I learned Javascript and fell in love with programming.  Now the only bugs I deal with are in code.
           </p>
         </section>
 
