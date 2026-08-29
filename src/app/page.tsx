@@ -64,7 +64,7 @@ export default function Home() {
             {CurrentExperience.map((i) => (
               <div key={i.job} className="flex gap-4 pb-10 last:pb-0">
                 <div className="flex flex-col items-center">
-                   {i.job == CurrentRole ? <span className="mt-1.5 size-2.5 rounded-full bg-primary animate-pulse" /> : <span className="mt-1.5 size-2.5 rounded-full bg-primary" />}
+                   {i.job == CurrentRole ? <span className="mt-1.5 size-2.5 rounded-full bg-green-900 animate-pulse" /> : <span className="mt-1.5 size-2.5 rounded-full bg-primary" />}
                   <span className="w-px flex-1 bg-border" />
          
                 </div>
