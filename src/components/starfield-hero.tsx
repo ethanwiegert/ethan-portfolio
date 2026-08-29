@@ -35,11 +35,11 @@ const DARK_STAR_PALETTE = [
   "#e8ecff",
 ];
 const LIGHT_STAR_PALETTE = [
-  "#52606f",
-  "#5d6b7a",
-  "#8a6d2f",
-  "#7a5f28",
-  "#6b7a8a",
+  "#1f2b4d",
+  "#2c3a66",
+  "#3c4d80",
+  "#4b3a72",
+  "#6f5aa8",
 ];
 
 const DARK_STAR_OPACITY = 1.0;
