@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ethan — Portfolio",
+  title: "Ethan",
   description:
-    "The personal portfolio of Ethan — projects, experience, and contact.",
+    "Personal portfolio and site for Ethan Wiegert.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

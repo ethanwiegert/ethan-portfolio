@@ -25,7 +25,7 @@ const CAMERA_FOV = 60;
 
 // ---- Theme palettes -----------------------------------------------------
 const DARK_BG = "#050510";
-const LIGHT_BG = "#dbe4ee";
+const LIGHT_BG = "#85a9eb";
 
 const DARK_STAR_PALETTE = [
   "#fff8e7",
@@ -35,11 +35,11 @@ const DARK_STAR_PALETTE = [
   "#e8ecff",
 ];
 const LIGHT_STAR_PALETTE = [
-  "#1f2b4d",
-  "#2c3a66",
-  "#3c4d80",
-  "#4b3a72",
-  "#6f5aa8",
+  "#fff8e7",
+  "#fffdf5",
+  "#ffd9a0",
+  "#ffc97a",
+  "#e8ecff",
 ];
 
 const DARK_STAR_OPACITY = 1.0;
@@ -49,8 +49,8 @@ const LIGHT_STAR_SIZE_SCALE = 1.4;
 
 const DARK_METEOR_HEAD = "#fff3d6";
 const DARK_METEOR_TRAIL = "#ffd9a0";
-const LIGHT_METEOR_HEAD = "#ffffff";
-const LIGHT_METEOR_TRAIL = "#d9c9a0";
+const LIGHT_METEOR_HEAD = "#fff3d6";
+const LIGHT_METEOR_TRAIL = "#ffd9a0";
 
 // ---- Original GLSL ------------------------------------------------------
 const STAR_VERTEX = /* glsl */ `
@@ -112,7 +112,7 @@ function pickColor(THREE: typeof import("three"), palette: string[]) {
 }
 
 function makeGlowTexture(THREE: typeof import("three")) {
-  const size = 64;
+  const size = 16;
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = size;
   const ctx = canvas.getContext("2d")!;
@@ -540,7 +540,7 @@ export function StarfieldHero() {
           Ethan
         </h1>
         <p className="mt-4 max-w-md text-lg text-muted-foreground">
-          Building tools that make developers faster.
+          Making what users <i>wish</i> for a reality
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Button nativeButton={false} render={<a href="#projects" />}>
@@ -549,7 +549,7 @@ export function StarfieldHero() {
           <Button
             variant="ghost"
             nativeButton={false}
-            render={<a href="#contact" />}
+            render={<a href="mailto:ewiegert99@gmail.com" />}
           >
             Get in touch
           </Button>
