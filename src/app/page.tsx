@@ -10,7 +10,7 @@ export default function Home() {
     time:string
   }
 
-  const CurrentExperience: Experience[] = [ {job:"CDW", description:"Lead Software Developer Device Cycle Services", time:"April 2026 - Current"},  {job:"Lexicon Tech Solutions", description:"Software developer", time:"April 2024 - April 2026"}, {job:"Exela Pharma Sciences", description:"QC Microbiologist", time:"August 2021 - August 2022"}];
+  const CurrentExperience: Experience[] = [ {job:"CDW", description:"Lead Software Developer for CDW DeviceCycle", time:"April 2026 - Current"},  {job:"Lexicon Tech Solutions", description:"Software developer", time:"April 2024 - April 2026"}, {job:"Exela Pharma Sciences", description:"QC Microbiologist", time:"August 2021 - August 2022"}];
 
   const CurrentRole = "CDW";
 
