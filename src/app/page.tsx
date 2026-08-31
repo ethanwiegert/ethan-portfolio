@@ -2,6 +2,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { StarfieldHero } from "@/components/starfield-hero";
 import { Button } from "@/components/ui/button";
+import Image from 'next/image'
 
 export default function Home() {
   interface Experience {
@@ -21,6 +22,11 @@ export default function Home() {
 
   const HighlightedProjects: Projects[] = [ ]
 
+  const imageStyle = {
+  borderRadius: '50%',
+  
+}
+
   return (
     <div className="flex flex-1 flex-col">
       <SiteHeader />
@@ -29,6 +35,7 @@ export default function Home() {
 
         <section id="about" className="mx-auto w-full max-w-3xl px-4 py-24 sm:px-6">
           <h2 className="text-3xl font-semibold tracking-tight">About</h2>
+          <Image className="my-4" src="/ethan.jpeg" alt="Ethan Wiegert" height={100} width={100} style={imageStyle}/>
           <p className="mt-4 text-muted-foreground">
             <b><i>From Microbiologist to Full-stack developer</i></b>
           </p>
