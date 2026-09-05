@@ -532,22 +532,30 @@ export function StarfieldHero() {
         ref={canvasRef}
         className="pointer-events-none absolute inset-0 h-full w-full"
       />
-      <div className="relative z-10 flex min-h-[100svh] flex-col items-center justify-center px-4 text-center">
-        <p className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-background" />
+      <div className="relative z-10 flex min-h-[100svh] flex-col items-center justify-center px-6 text-center">
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-foreground/70 sm:text-sm">
           Hi, I&apos;m
         </p>
-        <h1 className="mt-2 text-6xl font-bold tracking-tight sm:text-7xl">
+        <h1 className="mt-3 text-6xl font-bold tracking-tight sm:text-8xl">
           Ethan
         </h1>
-        <p className="mt-4 max-w-md text-lg text-muted-foreground">
+        <p className="mt-5 max-w-md text-balance text-lg text-foreground/80 sm:text-xl">
           Making what users <i>wish</i> for a reality
         </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Button nativeButton={false} render={<a href="#projects" />}>
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+          <Button
+            size="lg"
+            className="h-11 px-6 text-base"
+            nativeButton={false}
+            render={<a href="#projects" />}
+          >
             View projects
           </Button>
           <Button
-            variant="ghost"
+            size="lg"
+            variant="outline"
+            className="h-11 px-6 text-base"
             nativeButton={false}
             render={<a href="mailto:ewiegert99@gmail.com" />}
           >
