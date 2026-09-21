@@ -92,12 +92,17 @@ export function WorkflowHero() {
       const small = window.matchMedia("(max-width: 640px)").matches;
       const nodeCount = small ? 44 : 56;
 
-      const renderer = new THREE.WebGLRenderer({
-        canvas,
-        antialias: !small,
-        alpha: true,
-        powerPreference: small ? "low-power" : "default",
-      });
+      let renderer: THREE.WebGLRenderer;
+      try {
+        renderer = new THREE.WebGLRenderer({
+          canvas,
+          antialias: !small,
+          alpha: true,
+          powerPreference: small ? "low-power" : "default",
+        });
+      } catch {
+        return;
+      }
       renderer.setClearColor(0x000000, 0);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, small ? 1.5 : 2));
 
