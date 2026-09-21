@@ -68,8 +68,8 @@ function readColors() {
   const dark = document.documentElement.classList.contains("dark");
 
   return dark
-    ? { node: ring, line: ring, signal: foreground, lineOpacity: 0.42 }
-    : { node: primary, line: primary, signal: primary, lineOpacity: 0.38 };
+    ? { node: ring, line: ring, signal: foreground, lineOpacity: 0.62 }
+    : { node: primary, line: primary, signal: primary, lineOpacity: 0.55 };
 }
 
 export function WorkflowHero() {
@@ -90,7 +90,7 @@ export function WorkflowHero() {
       if (disposed) return;
 
       const small = window.matchMedia("(max-width: 640px)").matches;
-      const nodeCount = small ? 32 : 56;
+      const nodeCount = small ? 44 : 56;
 
       const renderer = new THREE.WebGLRenderer({
         canvas,
@@ -111,14 +111,14 @@ export function WorkflowHero() {
       const edges = buildEdges(points);
 
       const colors = readColors();
-      const nodeGeo = new THREE.SphereGeometry(0.075, small ? 10 : 16, small ? 8 : 12);
+      const nodeGeo = new THREE.SphereGeometry(0.12, small ? 10 : 16, small ? 8 : 12);
       const nodeMat = new THREE.MeshBasicMaterial({ color: colors.node });
       const nodes = new THREE.InstancedMesh(nodeGeo, nodeMat, points.length);
       const dummy = new THREE.Object3D();
 
       points.forEach((point, index) => {
         dummy.position.copy(point);
-        dummy.scale.setScalar(index % 8 === 0 ? 1.85 : 1);
+        dummy.scale.setScalar(index % 8 === 0 ? 2.1 : 1);
         dummy.updateMatrix();
         nodes.setMatrixAt(index, dummy.matrix);
       });
@@ -192,10 +192,11 @@ export function WorkflowHero() {
         camera.aspect = width / height;
         const fov = THREE.MathUtils.degToRad(camera.fov);
         const distance = FIT_RADIUS / Math.tan(fov / 2);
+        const margin = width < 640 ? 1.22 : 1.08;
         camera.position.set(
           0,
           0.2,
-          Math.max(distance, distance / Math.max(camera.aspect, 0.35)) * 1.15,
+          Math.max(distance, distance / Math.max(camera.aspect, 0.35)) * margin,
         );
         camera.lookAt(0, 0, 0);
         camera.updateProjectionMatrix();
@@ -330,7 +331,7 @@ export function WorkflowHero() {
       />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-28 bg-gradient-to-b from-transparent to-background sm:h-32" />
       <div className="relative z-10 mx-auto flex min-h-[calc(100svh-4rem)] w-full max-w-3xl flex-col items-center justify-center px-4 py-16 text-center sm:px-6">
-        <div className="pointer-events-none absolute top-1/2 left-1/2 -z-10 h-72 w-[min(100%,40rem)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-background/70 blur-3xl" />
+        <div className="pointer-events-none absolute top-1/2 left-1/2 -z-10 h-48 w-[min(78%,26rem)] -translate-x-1/2 -translate-y-[42%] rounded-full bg-background/55 blur-2xl sm:h-56" />
         <p className="text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground sm:text-sm">
           Full-stack developer
         </p>
