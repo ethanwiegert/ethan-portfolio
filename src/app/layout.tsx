@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ethan",
+  title: "Ethan Wiegert",
   description:
-    "Personal portfolio and site for Ethan Wiegert.",
+    "Ethan Wiegert helps teams deliver cost-efficient AI workflows that accelerate the work.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
