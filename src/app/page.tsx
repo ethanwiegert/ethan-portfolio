@@ -11,7 +11,7 @@ export default function Home() {
     <main className="relative isolate flex min-h-svh flex-1 flex-col overflow-hidden bg-background">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_45%,color-mix(in_oklch,var(--primary)_26%,transparent),transparent_65%)]"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_45%,color-mix(in_oklch,var(--primary)_9%,transparent),transparent_65%)] dark:bg-[radial-gradient(ellipse_at_50%_45%,color-mix(in_oklch,var(--primary)_22%,transparent),transparent_65%)]"
       />
       <EmberField className="pointer-events-none absolute inset-0 -z-10 h-full w-full" />
 
