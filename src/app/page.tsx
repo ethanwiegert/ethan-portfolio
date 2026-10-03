@@ -19,7 +19,7 @@ export default function Home() {
         <ThemeToggle />
       </div>
 
-      <section className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-4 pt-20 pb-28 text-center sm:px-6">
+      <section className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-4 pt-20 pb-36 text-center sm:px-6">
         <p className="text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground sm:text-sm">
           Full-stack developer
         </p>

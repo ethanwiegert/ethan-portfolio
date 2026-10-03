@@ -6,8 +6,8 @@ import { useEffect, useRef } from "react";
  * Embers riding a slowly shifting flow field.
  * The field is reseeded every load, so no two visits look the same.
  * Move the pointer to stir them and leave a spark trail. Random flares pop
- * on their own, and a small flame burns at the bottom of the screen, leaning
- * away from the pointer and feeding sparks into the field.
+ * on their own, and a wall of fire burns along the bottom of the screen,
+ * bending away from the pointer and feeding sparks into the field.
  */
 
 type Particle = {
@@ -27,7 +27,6 @@ type Particle = {
 
 const FLARE = 14;
 const POINTER_RADIUS = 190;
-const FLAME_BOTTOM = 26;
 const MAX_SPARKS = 280;
 const MAX_TAIL = 36;
 
@@ -86,14 +85,15 @@ export function EmberField({ className }: { className?: string }) {
     let target = 0;
     let sparkCount = 0;
     let nextFlare = 1.5 + Math.random() * 2;
-    let nextFlameSpark = 0.4;
     const particles: Particle[] = [];
 
     const pointer = { x: -9999, y: -9999, vx: 0, vy: 0, active: false };
-    const flame = { x: 0, base: 0, w: 0, h: 0, lean: 0, sway: 0 };
-    // Little licks of fire that break off the tip and burn out as they rise.
+    type Tongue = { x: number; phase: number; speed: number; scale: number; lean: number; heat: number };
+    const fire = { base: 0, w: 0, h: 0, tongues: [] as Tongue[] };
+    // Little licks of fire that break off the tips and burn out as they rise.
     const licks: { x: number; y: number; vx: number; vy: number; r: number; life: number; max: number }[] = [];
-    let nextLick = 0;
+    let lickBudget = 0;
+    let sparkBudget = 0;
 
     function spawn(p: Partial<Particle> = {}): Particle {
       const x = p.x ?? Math.random() * width;
@@ -135,10 +135,20 @@ export function EmberField({ className }: { className?: string }) {
       for (let i = embers; i < target; i++) {
         particles.push(spawn({ life: Math.random() * 8 }));
       }
-      flame.h = Math.min(54, Math.max(36, Math.min(width, height) * 0.06));
-      flame.w = flame.h * 0.34;
-      flame.x = width / 2;
-      flame.base = height - FLAME_BOTTOM;
+      fire.h = Math.min(64, Math.max(40, Math.min(width, height) * 0.07));
+      fire.w = fire.h * 0.34;
+      fire.base = height + 2;
+      // Overlapping tongues spanning the full width, a little past each edge.
+      const spacing = fire.w * 1.2;
+      const count = Math.ceil(width / spacing) + 3;
+      fire.tongues = Array.from({ length: count }, (_, i) => ({
+        x: (i - 1) * spacing + (Math.random() - 0.5) * spacing * 0.4,
+        phase: Math.random() * Math.PI * 2,
+        speed: 9 + Math.random() * 6,
+        scale: 0.8 + Math.random() * 0.4,
+        lean: 0,
+        heat: 0,
+      }));
     }
 
     function flow(x: number, y: number, t: number) {
@@ -185,30 +195,36 @@ export function EmberField({ className }: { className?: string }) {
         );
       }
 
-      // The flame sways in the breeze and leans away from a nearby pointer.
-      let leanTarget = gust * flame.w;
-      if (pointer.active) {
-        const dx = pointer.x - flame.x;
-        const dy = pointer.y - (flame.base - flame.h / 2);
-        const d = Math.hypot(dx, dy);
-        if (d < 260 && d > 1) leanTarget -= (dx / d) * (1 - d / 260) * flame.w * 1.6;
+      // Each tongue sways in the breeze and bends away from a nearby pointer.
+      for (const tg of fire.tongues) {
+        let leanTarget = gust * fire.w;
+        let heatTarget = 0;
+        if (pointer.active) {
+          const dx = pointer.x - tg.x;
+          const dy = pointer.y - (fire.base - fire.h);
+          const d = Math.hypot(dx, dy);
+          if (d < 220 && d > 1) {
+            const falloff = 1 - d / 220;
+            leanTarget -= (dx / d) * falloff * fire.w * 1.8;
+            heatTarget = falloff * 0.35;
+          }
+        }
+        tg.lean += (leanTarget - tg.lean) * Math.min(dt * 4, 1);
+        tg.heat += (heatTarget - tg.heat) * Math.min(dt * 3, 1);
       }
-      flame.lean += (leanTarget - flame.lean) * Math.min(dt * 4, 1);
-      flame.sway =
-        (Math.sin(elapsed * 2.3) * 0.5 + Math.sin(elapsed * 6.7 + 1) * 0.25) *
-          flame.w *
-          0.5 +
-        flame.lean;
 
-      nextLick -= dt;
-      if (nextLick <= 0) {
-        nextLick = 0.05 + Math.random() * 0.08;
+      // Licks and sparks break off all along the fire line.
+      lickBudget += dt * (width / 40);
+      while (lickBudget >= 1) {
+        lickBudget--;
+        const tg = fire.tongues[Math.floor(Math.random() * fire.tongues.length)];
+        if (!tg) break;
         licks.push({
-          x: flame.x + flame.sway * 0.7 + (Math.random() - 0.5) * flame.w * 0.7,
-          y: flame.base - flame.h * (0.35 + Math.random() * 0.2),
-          vx: flame.lean * 1.2 + (Math.random() - 0.5) * 12,
+          x: tg.x + tg.lean * 0.7 + (Math.random() - 0.5) * fire.w * 0.7,
+          y: fire.base - fire.h * (0.35 + Math.random() * 0.25),
+          vx: tg.lean * 1.2 + (Math.random() - 0.5) * 12,
           vy: -(60 + Math.random() * 40),
-          r: flame.w * (0.18 + Math.random() * 0.14),
+          r: fire.w * (0.18 + Math.random() * 0.14),
           life: 0,
           max: 0.2 + Math.random() * 0.18,
         });
@@ -221,15 +237,16 @@ export function EmberField({ className }: { className?: string }) {
         if (l.life > l.max) licks.splice(i, 1);
       }
 
-      nextFlameSpark -= dt;
-      if (nextFlameSpark <= 0) {
-        nextFlameSpark = 0.15 + Math.random() * 0.45;
+      sparkBudget += dt * (width / 220);
+      while (sparkBudget >= 1) {
+        sparkBudget--;
+        const x = Math.random() * width;
         addSpark({
-          x: flame.x + flame.sway * 0.8 + (Math.random() - 0.5) * flame.w * 0.6,
-          y: flame.base - flame.h * 0.75,
-          vx: flame.lean * 1.5 + (Math.random() - 0.5) * 30,
-          vy: -(50 + Math.random() * 70),
-          maxLife: 1.8 + Math.random() * 1.8,
+          x,
+          y: fire.base - fire.h * (0.6 + Math.random() * 0.3),
+          vx: gust * 30 + (Math.random() - 0.5) * 30,
+          vy: -(50 + Math.random() * 80),
+          maxLife: 1.8 + Math.random() * 2,
           size: 0.8 + Math.random() * 1.2,
           tint: Math.random() < 0.5 ? 0 : 2,
         });
@@ -291,9 +308,9 @@ export function EmberField({ className }: { className?: string }) {
       pointer.vy *= 0.85;
     }
 
-    // One teardrop "tongue" of the flame: round at the base, pointed at the tip.
-    function tongue(w: number, h: number, tipX: number, wobble: number, rgb: string) {
-      const { x, base } = flame;
+    // One teardrop "tongue" of fire: round at the base, pointed at the tip.
+    function tongue(x: number, w: number, h: number, tipX: number, wobble: number, rgb: string) {
+      const base = fire.base;
       const grad = g.createLinearGradient(0, base, 0, base - h);
       grad.addColorStop(0, `rgba(${rgb}, 1)`);
       grad.addColorStop(0.55, `rgba(${rgb}, 0.9)`);
@@ -320,27 +337,22 @@ export function EmberField({ className }: { className?: string }) {
       g.fill();
     }
 
-    function drawFlame() {
+    function drawFire() {
       const t = elapsed;
-      const { x, base, w, h, sway } = flame;
+      const { base, w, h } = fire;
       const colors = palette.flame;
-      const flick =
-        1 + Math.sin(t * 11) * 0.06 + Math.sin(t * 17.3 + 2) * 0.04 + Math.sin(t * 5.1) * 0.05;
-      const wob = Math.sin(t * 9.1) * 0.12;
 
-      // Warm glow pooled around the flame.
+      // Heat glow rising off the whole fire line.
       g.globalCompositeOperation = palette.glow ? "lighter" : "source-over";
-      g.globalAlpha = 0.85 + Math.sin(t * 13) * 0.15;
-      const r = h * 1.9;
-      const halo = g.createRadialGradient(x, base - h * 0.35, 0, x, base - h * 0.35, r);
+      g.globalAlpha = 0.9 + Math.sin(t * 9) * 0.1;
+      const glowTop = base - h * 3;
+      const halo = g.createLinearGradient(0, height, 0, glowTop);
       halo.addColorStop(0, colors.halo);
       halo.addColorStop(1, "rgba(0, 0, 0, 0)");
       g.fillStyle = halo;
-      g.fillRect(x - r, base - h * 0.35 - r, r * 2, r * 2);
+      g.fillRect(0, glowTop, width, height - glowTop);
 
       g.globalCompositeOperation = "source-over";
-      g.globalAlpha = 1;
-
       for (const l of licks) {
         const k = l.life / l.max;
         g.globalAlpha = (1 - k) * 0.85;
@@ -350,9 +362,45 @@ export function EmberField({ className }: { className?: string }) {
         g.fill();
       }
       g.globalAlpha = 1;
-      tongue(w, h * flick, sway, wob, colors.outer);
-      tongue(w * 0.66, h * 0.74 * (2 - flick), sway * 0.75, -wob, colors.mid);
-      tongue(w * 0.36, h * 0.42 * flick, sway * 0.45, wob * 0.5, colors.core);
+
+      // A rolling height wave plus per-tongue flicker keeps the line alive.
+      const shapes = fire.tongues.map((tg) => {
+        const roll =
+          Math.sin(tg.x * 0.011 + t * 1.3 + seed[0]) * 0.18 +
+          Math.sin(tg.x * 0.027 - t * 2.1 + seed[1]) * 0.12;
+        const flick =
+          1 +
+          Math.sin(t * tg.speed + tg.phase) * 0.08 +
+          Math.sin(t * tg.speed * 1.57 + tg.phase * 2) * 0.05;
+        return {
+          x: tg.x,
+          h: h * (0.85 + roll + tg.heat) * flick * tg.scale,
+          sway:
+            (Math.sin(t * 2.3 + tg.phase) * 0.5 + Math.sin(t * 6.7 + tg.phase * 1.7) * 0.25) *
+              w *
+              0.5 +
+            tg.lean,
+          wob: Math.sin(t * 9.1 + tg.phase) * 0.12,
+          flick,
+        };
+      });
+      // Draw layer by layer so neighbouring tongues melt into one fire.
+      for (const s of shapes) tongue(s.x, w, s.h, s.sway, s.wob, colors.outer);
+      for (const s of shapes) {
+        tongue(s.x, w * 0.66, s.h * 0.72 * (2 - s.flick), s.sway * 0.75, -s.wob, colors.mid);
+      }
+      for (const s of shapes) {
+        tongue(s.x, w * 0.36, s.h * 0.42 * s.flick, s.sway * 0.45, s.wob * 0.5, colors.core);
+      }
+
+      // A solid bed so the base reads as one continuous line.
+      const bedTop = base - h * 0.3;
+      const bed = g.createLinearGradient(0, height, 0, bedTop);
+      bed.addColorStop(0, `rgba(${colors.mid}, 1)`);
+      bed.addColorStop(0.5, `rgba(${colors.outer}, 0.85)`);
+      bed.addColorStop(1, `rgba(${colors.outer}, 0)`);
+      g.fillStyle = bed;
+      g.fillRect(0, bedTop, width, height - bedTop);
     }
 
     function draw() {
@@ -400,7 +448,7 @@ export function EmberField({ className }: { className?: string }) {
         }
       }
       g.globalAlpha = 1;
-      drawFlame();
+      drawFire();
       g.globalCompositeOperation = "source-over";
     }
 
