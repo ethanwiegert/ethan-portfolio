@@ -28,7 +28,7 @@ export function AgentCommand({ className }: { className?: string }) {
   }
 
   return (
-    <div className={className} data-no-burst>
+    <div className={className}>
       <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
         Ask your agent about me in one command
       </p>

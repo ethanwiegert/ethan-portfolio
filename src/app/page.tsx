@@ -13,13 +13,13 @@ export default function Home() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_45%,color-mix(in_oklch,var(--primary)_9%,transparent),transparent_65%)] dark:bg-[radial-gradient(ellipse_at_50%_45%,color-mix(in_oklch,var(--primary)_22%,transparent),transparent_65%)]"
       />
-      <EmberField className="pointer-events-none absolute inset-0 -z-10 h-full w-full" />
+      <EmberField className="pointer-events-none fixed inset-0 -z-10 h-full w-full" />
 
       <div className="absolute top-3 right-3 z-20 sm:top-5 sm:right-5">
         <ThemeToggle />
       </div>
 
-      <section className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-4 py-20 text-center sm:px-6">
+      <section className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-4 pt-20 pb-28 text-center sm:px-6">
         <p className="text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground sm:text-sm">
           Full-stack developer
         </p>
