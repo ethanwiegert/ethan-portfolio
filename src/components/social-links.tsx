@@ -73,7 +73,7 @@ export function BookCallButton({ className }: { className?: string }) {
       nativeButton={false}
       render={
         <a
-          href={external ? links.calendly : "#contact"}
+          href={external ? links.calendly : links.email}
           {...(external
             ? { target: "_blank", rel: "noreferrer noopener" }
             : {})}

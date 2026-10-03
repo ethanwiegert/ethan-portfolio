@@ -4,6 +4,7 @@
  * Paste a full URL to turn that control into a working link.
  * Leave LinkedIn, X, or Calendly as "" until you have the address —
  * the icon or button still renders, and it will not send people anywhere.
+ * Until Calendly is set, "Book a call" opens an email instead.
  */
 export const links = {
   github: "https://github.com/ethanwiegert",
