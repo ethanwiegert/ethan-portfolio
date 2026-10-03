@@ -22,6 +22,7 @@ type Particle = {
   size: number;
   tint: number;
   twinkle: number;
+  rise: number;
   spark: boolean;
 };
 
@@ -35,6 +36,8 @@ type Palette = {
   colors: string[];
   alpha: number;
   glow: boolean;
+  // Palette indexes from hottest to coolest, for embers cooling as they rise.
+  cooling: number[];
   flame: { outer: string; mid: string; core: string; halo: string };
 };
 
@@ -47,6 +50,7 @@ function readPalette(): Palette {
         colors: ["#ffb25e", "#ffc98a", "#ff8a3d", "#fff1dc"],
         alpha: 1,
         glow: true,
+        cooling: [3, 1, 0, 2],
         flame: {
           outer: "255, 86, 24",
           mid: "255, 170, 64",
@@ -58,6 +62,7 @@ function readPalette(): Palette {
         colors: ["#8c2312", "#6e1a0c", "#b8431e", "#3a1a10"],
         alpha: 0.95,
         glow: false,
+        cooling: [2, 0, 1, 3],
         flame: {
           outer: "176, 44, 12",
           mid: "234, 110, 24",
@@ -119,10 +124,12 @@ export function EmberField({ className }: { className?: string }) {
     let lickBudget = 0;
     let sparkBudget = 0;
 
+    // Embers are born on the fire surface. Most burn out low; a few ride the
+    // heat all the way up, so the glow thins out with height.
     function spawn(p: Partial<Particle> = {}): Particle {
       const x = p.x ?? Math.random() * width;
-      const y = p.y ?? Math.random() * height;
-      const maxLife = p.maxLife ?? 7 + Math.random() * 10;
+      const y = p.y ?? fire.base - fire.h * profile(x, elapsed, 0) * 0.8;
+      const maxLife = p.maxLife ?? 2 + Math.pow(Math.random(), 1.8) * 14;
       return {
         x,
         y,
@@ -135,6 +142,7 @@ export function EmberField({ className }: { className?: string }) {
         size: p.size ?? 0.9 + Math.random() * Math.random() * 2.6,
         tint: p.tint ?? Math.floor(Math.random() * 4),
         twinkle: Math.random() * Math.PI * 2,
+        rise: 22 + Math.random() * 40,
         spark: p.spark ?? false,
       };
     }
@@ -153,14 +161,19 @@ export function EmberField({ className }: { className?: string }) {
       cvs.width = Math.round(width * dpr);
       cvs.height = Math.round(height * dpr);
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
-      // Scale density to area so phones stay light and big screens stay full.
-      target = Math.round(Math.min(340, Math.max(120, (width * height) / 4200)));
-      const embers = particles.filter((p) => !p.spark).length;
-      for (let i = embers; i < target; i++) {
-        particles.push(spawn({ life: Math.random() * 8 }));
-      }
       fire.h = Math.min(80, Math.max(48, Math.min(width, height) * 0.085));
       fire.base = height + 2;
+      // Scale density to width: the fire feeds embers along its whole length.
+      target = Math.round(Math.min(320, Math.max(110, width / 4.5)));
+      const embers = particles.filter((p) => !p.spark).length;
+      for (let i = embers; i < target; i++) {
+        // Start mid-flight so the first frame already looks like a fire.
+        const e = spawn();
+        e.life = Math.random() * e.maxLife * 0.9;
+        e.y -= e.rise * 0.7 * e.life;
+        e.py = e.y;
+        particles.push(e);
+      }
     }
 
     function flow(x: number, y: number, t: number) {
@@ -173,9 +186,10 @@ export function EmberField({ className }: { className?: string }) {
       );
     }
 
+    // A pop in the fire that sprays a fan of sparks upward.
     function burst(x: number, y: number, count: number, power: number) {
       for (let i = 0; i < count; i++) {
-        const a = (i / count) * Math.PI * 2 + Math.random() * 0.5;
+        const a = -Math.PI * (0.15 + Math.random() * 0.7);
         const v = (60 + Math.random() * 160) * power;
         addSpark({
           x,
@@ -199,12 +213,8 @@ export function EmberField({ className }: { className?: string }) {
       nextFlare -= dt;
       if (nextFlare <= 0) {
         nextFlare = 2.5 + Math.random() * 4;
-        burst(
-          width * (0.1 + Math.random() * 0.8),
-          height * (0.1 + Math.random() * 0.8),
-          FLARE,
-          0.55,
-        );
+        const x = width * (0.05 + Math.random() * 0.9);
+        burst(x, fire.base - fire.h * profile(x, elapsed, 0) * 0.7, FLARE, 0.8);
       }
 
       // The whole fire leans with the breeze; a nearby pointer heats the
@@ -271,10 +281,16 @@ export function EmberField({ className }: { className?: string }) {
         p.py = p.y;
         p.life += dt;
 
+        // Heat carries everything upward; the flow field and a little flutter
+        // push embers side to side, and they slow as they cool.
         const angle = flow(p.x, p.y, elapsed) + gust;
-        const lift = p.spark ? 4 : -8;
-        const ax = Math.cos(angle) * speed - p.vx;
-        const ay = Math.sin(angle) * speed + lift - p.vy;
+        const cool = Math.min(p.life / p.maxLife, 1);
+        const lift = p.spark ? -25 : -p.rise * (1 - cool * 0.6);
+        const flutter =
+          Math.sin(elapsed * (1.5 + (p.twinkle % 1.5)) + p.twinkle * 5) * 26 +
+          Math.sin(elapsed * 0.7 + p.twinkle) * 14;
+        const ax = Math.cos(angle) * speed * 0.9 + flutter - p.vx;
+        const ay = Math.sin(angle) * speed * 0.35 + lift - p.vy;
         const steer = p.spark ? 0.9 : 1.3;
         p.vx += ax * steer * dt;
         p.vy += ay * steer * dt;
@@ -389,15 +405,20 @@ export function EmberField({ className }: { className?: string }) {
 
       g.lineCap = "round";
       for (const p of particles) {
-        const fadeIn = Math.min(p.life / 1.2, 1);
-        const fadeOut = Math.min((p.maxLife - p.life) / 1.5, 1);
-        const flicker = 0.6 + Math.sin(elapsed * 2.6 + p.twinkle) * 0.4;
+        const cool = Math.min(p.life / p.maxLife, 1);
+        const fadeIn = Math.min(p.life / 0.4, 1);
+        const fadeOut = Math.min((1 - cool) / 0.45, 1);
+        const flicker = 0.7 + Math.sin(elapsed * 4.2 + p.twinkle) * 0.3;
         const alpha = Math.max(0, fadeIn * fadeOut * flicker * palette.alpha);
         if (alpha < 0.02) continue;
 
-        const color = palette.colors[p.tint];
+        // Embers start white-hot and cool through the palette as they rise.
+        const color = p.spark
+          ? palette.colors[p.tint]
+          : palette.colors[palette.cooling[Math.min(3, Math.floor(cool * 4))]];
+        const size = p.spark ? p.size : p.size * (1 - cool * 0.5);
         // Stretch each ember along its motion for a comet tail.
-        const tail = p.spark ? 6 : 5;
+        const tail = p.spark ? 6 : 2.5;
         let tx = (p.x - p.px) * tail;
         let ty = (p.y - p.py) * tail;
         const len = Math.hypot(tx, ty);
@@ -407,7 +428,7 @@ export function EmberField({ className }: { className?: string }) {
         }
         g.globalAlpha = alpha * 0.85;
         g.strokeStyle = color;
-        g.lineWidth = p.size;
+        g.lineWidth = size;
         g.beginPath();
         g.moveTo(p.x - tx, p.y - ty);
         g.lineTo(p.x, p.y);
@@ -417,13 +438,13 @@ export function EmberField({ className }: { className?: string }) {
         g.globalAlpha = alpha;
         g.fillStyle = color;
         g.beginPath();
-        g.arc(p.x, p.y, p.size * 0.75, 0, Math.PI * 2);
+        g.arc(p.x, p.y, size * 0.75, 0, Math.PI * 2);
         g.fill();
         // Halos only read as glow on dark; on cream they look like smudges.
-        if (palette.glow && p.size > 2) {
+        if (palette.glow && size > 2) {
           g.globalAlpha = alpha * 0.12;
           g.beginPath();
-          g.arc(p.x, p.y, p.size * 2.6, 0, Math.PI * 2);
+          g.arc(p.x, p.y, size * 2.6, 0, Math.PI * 2);
           g.fill();
         }
       }
