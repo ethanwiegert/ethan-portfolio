@@ -15,7 +15,7 @@ export function AgentCommand({ className }: { className?: string }) {
   );
   const [copied, setCopied] = useState(false);
 
-  const command = `curl -s ${origin}/llms.txt | claude -p "Tell me about Ethan"`;
+  const command = `curl -s ${origin}/llms.txt | "Tell me about Ethan"`;
 
   async function copy() {
     try {

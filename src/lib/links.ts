@@ -8,9 +8,8 @@
  */
 export const links = {
   github: "https://github.com/ethanwiegert",
-  linkedin: "",
-  x: "",
-  calendly: "",
+  linkedin: "https://www.linkedin.com/in/ethan-wiegert/",
+  x: "https://x.com/ethansde",
   email: "mailto:ewiegert99@gmail.com",
 } as const;
 

@@ -26,29 +26,10 @@ export default function Home() {
         <h1 className="mt-3 text-6xl font-bold tracking-tight sm:text-8xl">
           Ethan
         </h1>
-        <p className="mt-5 max-w-xl text-balance text-lg text-foreground/85 sm:text-xl">
-          Cost-efficient AI workflows that accelerate teams.
-        </p>
 
-        <div className="mt-8 flex w-full max-w-sm flex-col items-stretch justify-center gap-3 sm:max-w-none sm:flex-row sm:items-center">
-          <BookCallButton className="w-full sm:w-auto" />
-          <Button
-            size="lg"
-            variant="outline"
-            className="h-11 w-full bg-background/60 px-6 text-base backdrop-blur-sm sm:w-auto"
-            nativeButton={false}
-            render={
-              <a href={links.github} target="_blank" rel="noreferrer noopener" />
-            }
-          >
-            <GitHubIcon className="size-4" />
-            GitHub
-          </Button>
-        </div>
+        <SocialLinks className="my-4" />
 
-        <SocialLinks className="mt-8" />
-
-        <AgentCommand className="mt-10 w-full max-w-xl" />
+        <AgentCommand className="mt-20 w-full max-w-xl" />
       </section>
     </main>
   );
